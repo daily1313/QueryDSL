@@ -4,7 +4,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static study.QueryDSL.entity.QMember.*;
 
 import com.querydsl.core.QueryFactory;
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import javax.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,5 +92,37 @@ public class QueryDslBasicTest {
                 .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void resultFetchTest() {
+
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch();
+        // 전체 조회
+
+        Member fetchOne = queryFactory
+                .selectFrom(member)
+                .fetchOne();
+        // 단건 조회
+
+        Member fetchFirst = queryFactory
+                .selectFrom(member)
+                .fetchFirst();
+        // 처음 한 건 조회, limit 1
+
+        QueryResults<Member> results = queryFactory
+                .selectFrom(member)
+                .fetchResults();
+        // 페이징 처리
+        results.getTotal();
+        List<Member> content = results.getResults();
+
+        // count 쿼리로 변경
+        long total = queryFactory
+                .selectFrom(member)
+                .fetchCount();
+
     }
 }
