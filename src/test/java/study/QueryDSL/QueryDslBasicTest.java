@@ -1,7 +1,9 @@
 package study.QueryDSL;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static study.QueryDSL.entity.QMember.*;
 
+import com.querydsl.core.QueryFactory;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import javax.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
@@ -9,20 +11,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.QueryDSL.entity.Member;
 import study.QueryDSL.entity.QMember;
 import study.QueryDSL.entity.Team;
 
+
 @SpringBootTest
 @Transactional
+@Commit
 public class QueryDslBasicTest {
 
     @Autowired
     EntityManager em;
 
+    JPAQueryFactory queryFactory;
+
     @BeforeEach
     public void before() {
+        queryFactory = new JPAQueryFactory(em);
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
 
@@ -52,14 +60,35 @@ public class QueryDslBasicTest {
 
     @Test
     public void startQuerydsl() {
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em);
-        QMember m = new QMember("m");
 
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1"))
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))
                 .fetchOne();
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void search() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10)))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void searchAndParam() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.eq(10))
+                .fetchOne();
+
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 }
